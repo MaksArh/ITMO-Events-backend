@@ -1,23 +1,22 @@
-import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { UsersModule } from 'users/users.module';
-import { NewsModule } from 'news/news.module';
-import { EventsModule } from 'events/events.module';
-import { ConfigModule } from '@nestjs/config';
-import { User } from 'users/user.model';
-import { FormsModule } from 'forms/forms.module';
-import { RegsModule } from 'regs/regs.module';
-import { Event } from 'events/event.model';
-import { Reg } from 'regs/reg.model';
-import { Form } from 'forms/form.model';
-import { News } from 'news/news.model';
-import { RolesModule } from 'roles/roles.module';
-import { Role } from 'roles/role.model';
-import { UserRoles } from 'roles/user-roles.model';
-import { AuthModule } from 'auth/auth.module';
-import { JwtModule } from '@nestjs/jwt';
-import { readFileSync } from 'fs';
-import { LoggerModule } from 'logger/logger.module';
+import {Module} from '@nestjs/common';
+import {SequelizeModule} from '@nestjs/sequelize';
+import {UsersModule} from 'users/users.module';
+import {NewsModule} from 'news/news.module';
+import {EventsModule} from 'events/events.module';
+import {ConfigModule} from '@nestjs/config';
+import {User} from 'users/user.model';
+import {FormsModule} from 'forms/forms.module';
+import {RegsModule} from 'regs/regs.module';
+import {Event} from 'events/event.model';
+import {Reg} from 'regs/reg.model';
+import {Form} from 'forms/form.model';
+import {News} from 'news/news.model';
+import {RolesModule} from 'roles/roles.module';
+import {Role} from 'roles/role.model';
+import {UserRoles} from 'roles/user-roles.model';
+import {AuthModule} from 'auth/auth.module';
+import {JwtModule} from '@nestjs/jwt';
+import {readFileSync} from 'fs';
 
 @Module({
     controllers: [],
@@ -55,7 +54,6 @@ import { LoggerModule } from 'logger/logger.module';
         RolesModule,
         AuthModule,
         JwtModule,
-        LoggerModule
     ]
 
 })

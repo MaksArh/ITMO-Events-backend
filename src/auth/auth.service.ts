@@ -14,7 +14,6 @@ export class AuthService {
 
     async updateTokensFromRefresh (refreshToken: string): Promise<any> {
         // new tokens getting from refresh (idToken accessToken refreshToken) with new expiration
-        console.log(refreshToken);
         return await this.ssoService.refreshAccess(refreshToken);
     }
 

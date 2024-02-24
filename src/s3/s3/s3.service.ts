@@ -1,6 +1,8 @@
 // import { Injectable } from '@nestjs/common';
 // import { S3 } from 'aws-sdk';
-//
+
+// TODO: Интегрировать YandexS3 Для фотографий мероприятий и пользователей
+
 // @Injectable()
 // export class S3Service {
 //     constructor (private readonly s3: S3) {

@@ -1,33 +1,24 @@
-export class CreateEventDto {
-    readonly id: number;
+import {ApiProperty} from '@nestjs/swagger';
+import {IsInt, IsString} from 'class-validator';
 
+export class CreateEventDto {
+    @ApiProperty({ description: 'Название события', example: 'Название мероприятия' })
+    @IsString()
     readonly title: string;
 
+    @ApiProperty({ description: 'Описание события', example: 'Описание мероприятия' })
+    @IsString()
     readonly description: string;
 
+    @ApiProperty({ description: 'URL изображения события', example: 'http://example.com/image.jpg' })
+    @IsString()
     readonly imageUrl: string;
 
+    @ApiProperty({ description: 'ID пользователя', example: 123 })
+    @IsInt()
     readonly userId: number;
 
-    readonly eventStartDate: number;
-
-    readonly eventExpirationDate?: number;
-
-    readonly regStartDate: number;
-
-    readonly regExpirationDate: number;
-
-    readonly duration: number;
-
-    readonly memberAmount: number;
-
-    readonly visitors: number;
-
-    // @Column({ type: DataType.STRING, allowNull: false })
-    //     category: number;
-    //
-    // @Column({ type: DataType.JSON, allowNull: true })
-    //     tags: string;
-
+    @ApiProperty({ description: 'ID формы', example: 10 })
+    @IsInt()
     readonly formId: number;
 }

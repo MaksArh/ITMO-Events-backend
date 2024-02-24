@@ -24,6 +24,7 @@ export class RoleGuard implements CanActivate {
                 const profile = this.userService.decodeUser(token);
                 const user = (await this.userService.getUser(profile.isu)).user;
                 if (user != null) {
+                    // @ts-ignore
                     return (user.roles.some((role: string) => reqRoles.includes(role)));
                 }
             }

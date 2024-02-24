@@ -24,7 +24,14 @@ export class RegsService {
         await this.regRepository.destroy({ where: { eventId: id } });
     }
 
-    async updateRegData (eventId: number, userId: number, dto: Omit<RegDto, 'data'>): Promise<void> {
+    async clearRegList(eventId: number): Promise<void> {
+        const reg = await this.regRepository.findOne({ where: { eventId } });
+        if (reg) {
+            await reg.update({ regList: {} });
+        }
+    }
+
+    async updateUserState (eventId: number, userId: number, dto: Omit<RegDto, 'data'>): Promise<void> {
         const reg = await this.regRepository.findOne({ where: { eventId } });
         if (reg !== null) {
             reg.regList[userId].state = dto.state;
@@ -34,7 +41,7 @@ export class RegsService {
         }
     }
 
-    async addRegData (eventId: number, userId: number, userData: RegDto): Promise<void> {
+    async registerUser (eventId: number, userId: number, userData: RegDto): Promise<void> {
         const reg = await this.regRepository.findOne({ where: { eventId } });
         if (reg !== null) {
             reg.regList[userId] = userData;

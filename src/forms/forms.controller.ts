@@ -1,74 +1,63 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { FormsService } from 'forms/forms.service';
-import { Form } from 'forms/form.model';
-import { UsersService } from 'users/users.service';
-import { Cookies } from 'decorators/cookie.decorator';
-import { CreateFormDto } from 'forms/dto/create-form.dto';
-import { Roles } from 'decorators/roles.decorator';
-import { JwtAuthGuard } from 'auth/jwt-auth.guard';
-import { RoleGuard } from 'auth/role.guard';
+import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
+import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags} from '@nestjs/swagger';
+import {FormsService} from 'forms/forms.service';
+import {CreateFormDto} from 'forms/dto/create-form.dto';
+import {UpdateFormDto} from 'forms/dto/update-form.dto';
+import {Roles} from 'decorators/roles.decorator';
+import {JwtAuthGuard} from 'auth/jwt-auth.guard';
+import {RoleGuard} from 'auth/role.guard';
+import { FormRO} from "forms/dto/forms.ro";
 
 @ApiTags('Формы')
-@UseGuards(JwtAuthGuard)
-@UseGuards(RoleGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('forms')
 export class FormsController {
-    constructor (private readonly formService: FormsService, private readonly userService: UsersService) {}
+    constructor(private readonly formService: FormsService) {}
 
-    @ApiOperation({ summary: 'Получение форм' })
-    @ApiResponse({ status: 200, type: Form })
+    @ApiOperation({ summary: 'Получение всех форм' })
+    @ApiResponse({ status: 200, description: 'Возвращает список форм', type: [FormRO] })
     @Roles('EVENTADMIN', 'ADMIN')
-    @Get('fetch')
-    async fetchForms (): Promise<Form[]> {
+    @Get()
+    async fetchForms(): Promise<FormRO[]> {
         return await this.formService.fetch();
     }
 
-    @ApiOperation({ summary: 'Получение форы по id' })
-    @ApiResponse({ status: 200, type: Form })
+    @ApiOperation({ summary: 'Получение формы по ID' })
+    @ApiResponse({ status: 200, description: 'Возвращает форму', type: FormRO })
+    @ApiResponse({ status: 404, description: 'Форма не найдена' })
+    @ApiParam({ name: 'id', type: 'number', description: 'ID формы' })
     @Roles('EVENTADMIN', 'ADMIN')
     @Get(':id')
-    async getForm (@Param() params): Promise<Form | null> {
-        return await this.formService.getFormById(params.id);
+    async getForm(@Param('id') id: number): Promise<FormRO> {
+        return await this.formService.getFormById(id);
     }
 
-    @ApiBody({ type: CreateFormDto, description: 'userId сам подтягивается системой, передавать не надо' })
-    @ApiOperation({ summary: 'Создание формы' })
-    @ApiResponse({ status: 200, type: Form })
+    @ApiOperation({ summary: 'Создание новой формы' })
+    @ApiResponse({ status: 201, description: 'Форма успешно создана', type: FormRO })
+    @ApiBody({ type: CreateFormDto })
     @Roles('EVENTADMIN', 'ADMIN')
-    @Post('create')
-    async createForm (@Body() data: Omit<CreateFormDto, 'userId'>, @Cookies('id_token') idToken: string):
-    Promise<number> {
-        try {
-            const isu = (this.userService.decodeUser(idToken)).isu;
-            console.log(isu);
-            const dto: CreateFormDto = { ...data, userId: isu };
-            const form = await this.formService.create(dto);
-            return form?.id;
-        } catch (e) {
-            throw new HttpException('Forbidden', HttpStatus.BAD_REQUEST);
-        }
+    @Post()
+    async createForm(@Body() createFormDto: CreateFormDto): Promise<FormRO> {
+        return await this.formService.create(createFormDto);
     }
 
+    @ApiOperation({ summary: 'Обновление формы' })
+    @ApiResponse({ status: 200, description: 'Форма успешно обновлена', type: FormRO })
+    @ApiResponse({ status: 404, description: 'Форма не найдена' })
+    @ApiBody({ type: UpdateFormDto })
     @Roles('EVENTADMIN', 'ADMIN')
-    @Put('update')
-    async updateForm (@Body() updates: Form): Promise<boolean> {
-        try {
-            const formId = updates.id;
-            await this.formService.update(formId, updates);
-            return true;
-        } catch (e) {
-            return false;
-        }
+    @Put(':id')
+    async updateForm(@Param('id') id: number, @Body() updateFormDto: UpdateFormDto): Promise<FormRO> {
+        return await this.formService.update(id, updateFormDto);
     }
 
+    @ApiOperation({ summary: 'Удаление формы по ID' })
+    @ApiResponse({ status: 200, description: 'Форма успешно удалена' })
+    @ApiResponse({ status: 404, description: 'Форма не найдена' })
+    @ApiParam({ name: 'id', type: 'number', description: 'ID формы для удаления' })
     @Roles('EVENTADMIN', 'ADMIN')
-    @Delete('delete')
-    async deleteForm (@Cookies('id_token') idToken: string, @Body() id: number): Promise<void> {
-        const isu = (this.userService.decodeUser(idToken)).isu;
-        const form = await this.formService.getFormById(id);
-        if (form !== null && form?.userId === isu) {
-            await this.formService.delete(id);
-        }
+    @Delete(':id')
+    async deleteForm(@Param('id') id: number): Promise<void> {
+        await this.formService.delete(id);
     }
 }

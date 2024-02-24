@@ -1,55 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { type CreateEventDto } from 'events/dto/create-event.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Event } from 'events/event.model';
-import { FormsService } from 'forms/forms.service';
-import { RegsService } from 'regs/regs.service';
+import { CreateEventDto } from 'events/dto/create-event.dto';
+import {EventData, EventRO} from "events/dto/event.ro";
+import {UpdateEventDto} from "events/dto/update-event.dto";
 
 @Injectable()
 export class EventsService {
-    constructor (@InjectModel(Event)
-    private readonly eventRepository: typeof Event,
-    private readonly formService: FormsService,
-    private readonly regRepository: RegsService) {}
+    constructor(
+        @InjectModel(Event) private readonly eventRepository: typeof Event
+    ) {}
 
-    async fetchEvents (): Promise<Event[]> {
-        return await this.eventRepository.findAll({ include: [{ all: true }] });
-    }
-
-    async getEvent (id: number): Promise<Event | null> {
-        return await this.eventRepository.findOne({ where: { id } });
-    }
-
-    async createEvent (dto: CreateEventDto): Promise<Event> {
-        const event = await this.eventRepository.create(dto);
-        if (dto.formId !== undefined) {
-            const form = await this.formService.getFormById(dto.formId);
-            if ((form != null)) {
-                await event.$set('form', [form.id]);
-                event.form = form;
-            }
-        }
-        if ((event != null)) {
-            await this.regRepository.createReg({ eventId: event?.id });
-            return event;
+    private async _getEventModel(id: number): Promise<Event> {
+        const event = await this.eventRepository.findByPk(id);
+        if (!event) {
+            throw new NotFoundException(`Event with ID "${id}" not found.`);
         }
         return event;
     }
 
-    async editEvent (data: { id: number }): Promise<void> {
-        const event = await this.eventRepository.findOne({ where: { id: data.id } });
-        if (event == null) {
-            throw new Error('Event not found');
-        }
-        try {
-            await event.update(data);
-        } catch (e) {
-            console.log(`updateEvent service ERR: ${e.message as string}`);
-            throw e;
-        }
+    async fetchEvents(): Promise<EventRO[]> {
+        const events = await this.eventRepository.findAll({ include: { all: true } });
+        return events.map(event => this.buildEventRO(event));
     }
 
-    async deleteEvent (id: number): Promise<void> {
-        await this.eventRepository.destroy({ where: { id } });
+    async getEvent(id: number): Promise<EventRO> {
+        const event = await this._getEventModel(id);
+        return this.buildEventRO(event);
+    }
+
+    async createEvent(dto: CreateEventDto): Promise<EventRO> {
+        const event = await this.eventRepository.create(dto);
+        return this.buildEventRO(event);
+    }
+
+    async editEvent(updates: UpdateEventDto): Promise<EventRO> {
+        const event = await this._getEventModel(updates.id);
+        await event.update(updates.event);
+        return this.buildEventRO(event);
+    }
+
+    async deleteEvent(id: number): Promise<void> {
+        const event = await this._getEventModel(id);
+        await event.destroy();
+    }
+
+    public buildEventRO(event: Event): EventRO {
+        const eventData: EventData = { ...event.get({ plain: true }) };
+        return { event: eventData };
     }
 }

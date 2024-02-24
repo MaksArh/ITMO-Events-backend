@@ -6,6 +6,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import {ValidationPipe} from "@nestjs/common";
 
 const CORS_OPTIONS = {
     origin: ['https://events.itmo.space', 'https://id.itmo.ru'], // Обновленный origin
@@ -23,7 +24,7 @@ const CORS_OPTIONS = {
     methods: ['GET', 'PUT', 'OPTIONS', 'POST', 'DELETE']
 };
 
-const start = async (): Promise<any> => {
+const start = async (): Promise<number> => {
     const PORT = process.env.PORT ?? 5001;
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
@@ -32,6 +33,11 @@ const start = async (): Promise<any> => {
     await app.register(fastifyCookie);
     await app.register(fastifyHelmet);
     await app.register(fastifyCors, CORS_OPTIONS);
+    app.useGlobalPipes(new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+    }));
 
     const config = new DocumentBuilder()
         .setTitle('Event Backend')
